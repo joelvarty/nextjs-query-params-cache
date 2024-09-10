@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Caching with Query Params in Next.js
 
-## Getting Started
+- This repo shows how route caching is affected by query parameters in next.js 14
 
-First, run the development server:
+- In the `query` page, we are using the searchParam portion of the URL
+- In the `no-query` page, we are NOT using the searchParam portion of the URL
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Expected Behaviour:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- I would expect both pages to cache the same
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Actual Results
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- The `no-query` page has a `cache-control` response header of `s-maxage=60, stale-while-revalidate`
+- The `query` page has a `cache-control` response header of `private, no-cache, no-store, max-age=0, must-revalidate`, even when NO query parameters are passed.
 
-## Learn More
+Steps to repro
 
-To learn more about Next.js, take a look at the following resources:
+- `yarn install`
+- `yarn build`
+- `yarn start`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Browse to `http://localhost:3000/query/test`
+  - notice the cache-control header specifies maxage that matches our revalidate export and stale-while-revalidate
+- Browse to 'http://localhost:3000/query/test'
+  - notice the cache-control header specifies no-cache
